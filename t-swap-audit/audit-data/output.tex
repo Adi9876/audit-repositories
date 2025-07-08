@@ -1,0 +1,553 @@
+\begin{titlepage}
+    \centering
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{logo.pdf} 
+    \end{figure}
+    \vspace*{2cm}
+    {\Huge\bfseries TSwap Protocol Audit Report\par}
+    \vspace{1cm}
+    {\Large Version 1.0\par}
+    \vspace{2cm}
+    {\Large\itshape adiverse\par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\maketitle
+
+Prepared by: {[}Aditya{]}
+
+\section{Table of Contents}\label{table-of-contents}
+
+\begin{itemize}
+\tightlist
+\item
+  \hyperref[table-of-contents]{Table of Contents}
+\item
+  \hyperref[protocol-summary]{Protocol Summary}
+\item
+  \hyperref[disclaimer]{Disclaimer}
+\item
+  \hyperref[risk-classification]{Risk Classification}
+\item
+  \hyperref[audit-details]{Audit Details}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \hyperref[scope]{Scope}
+  \item
+    \hyperref[roles]{Roles}
+  \end{itemize}
+\item
+  \hyperref[executive-summary]{Executive Summary}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \hyperref[issues-found]{Issues found}
+  \end{itemize}
+\item
+  \hyperref[findings]{Findings}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \hyperref[high]{High}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \hyperref[h-1-tswappooldeposit-is-missing-deadline-check-causing-transactions-to-complete-even-after-the-deadline]{{[}H-1{]}
+      \texttt{TSwapPool::deposit} is missing deadline check causing
+      transactions to complete even after the deadline}
+    \item
+      \hyperref[h-2-incorrect-fee-calculation-in-tswappoolgetinputamountbasedonoutput-causes-protocll-to-take-too-many-tokens-from-users-resulting-in-lost-fees]{{[}H-2{]}
+      Incorrect fee calculation in
+      \texttt{TSwapPool::getInputAmountBasedOnOutput} causes protocll to
+      take too many tokens from users, resulting in lost fees}
+    \item
+      \hyperref[h-3-lack-of-slippage-protection-in-tswappoolswapexactoutput-causes-users-to-potentially-receive-way-fewer-tokens]{{[}H-3{]}
+      Lack of slippage protection in \texttt{TSwapPool::swapExactOutput}
+      causes users to potentially receive way fewer tokens}
+    \item
+      \hyperref[h-4-tswappoolsellpooltokens-mismatches-input-and-output-tokens-causing-users-to-receive-the-incorrect-amount-of-tokens]{{[}H-4{]}
+      \texttt{TSwapPool::sellPoolTokens} mismatches input and output
+      tokens causing users to receive the incorrect amount of tokens}
+    \item
+      \hyperref[h-5-in-tswappool_swap-the-extra-tokens-given-to-users-after-every-swapcount-breaks-the-protocol-invariant-of-x--y--k]{{[}H-5{]}
+      In \texttt{TSwapPool::\_swap} the extra tokens given to users
+      after every \texttt{swapCount} breaks the protocol invariant of
+      \texttt{x\ *\ y\ =\ k}}
+    \end{itemize}
+  \item
+    \hyperref[low]{Low}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \hyperref[l-1-tswappoolliquidityadded-event-has-parameters-out-of-order]{{[}L-1{]}
+      \texttt{TSwapPool::LiquidityAdded} event has parameters out of
+      order}
+    \item
+      \hyperref[l-2-default-value-returned-by-tswappoolswapexactinput-results-in-incorrect-return-value-given]{{[}L-2{]}
+      Default value returned by \texttt{TSwapPool::swapExactInput}
+      results in incorrect return value given}
+    \end{itemize}
+  \item
+    \hyperref[informationals]{Informationals}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      \hyperref[i-1-poolfactorypoolfactory__pooldoesnotexist-is-not-used-and-should-be-removed]{{[}I-1{]}
+      \texttt{PoolFactory::PoolFactory\_\_PoolDoesNotExist} is not used
+      and should be removed}
+    \item
+      \hyperref[i-2-lacking-zero-address-checks]{{[}I-2{]} Lacking zero
+      address checks}
+    \item
+      \hyperref[i-3-poolfacotrycreatepool-should-use-symbol-instead-of-name]{{[}I-3{]}
+      \texttt{PoolFacotry::createPool} should use \texttt{.symbol()}
+      instead of \texttt{.name()}}
+    \item
+      \hyperref[i-4-event-is-missing-indexed-fields]{{[}I-4{]} Event is
+      missing \texttt{indexed} fields}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\section{Protocol Summary}\label{protocol-summary}
+
+Protocol does X, Y, Z
+
+\section{Disclaimer}\label{disclaimer}
+
+The YOUR\_NAME\_HERE team makes all effort to find as many
+vulnerabilities in the code in the given time period, but holds no
+responsibilities for the findings provided in this document. A security
+audit by the team is not an endorsement of the underlying business or
+product. The audit was time-boxed and the review of the code was solely
+on the security aspects of the Solidity implementation of the contracts.
+
+\section{Risk Classification}\label{risk-classification}
+
+\begin{longtable}[]{@{}lllll@{}}
+\toprule\noalign{}
+& & Impact & & \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+& & High & Medium & Low \\
+& High & H & H/M & M \\
+Likelihood & Medium & H/M & M & M/L \\
+& Low & M & M/L & L \\
+\end{longtable}
+
+We use the
+\href{https://docs.codehawks.com/hawks-auditors/how-to-evaluate-a-finding-severity}{CodeHawks}
+severity matrix to determine severity. See the documentation for more
+details.
+
+\section{Audit Details}\label{audit-details}
+
+\subsection{Scope}\label{scope}
+
+\subsection{Roles}\label{roles}
+
+\section{Executive Summary}\label{executive-summary}
+
+\subsection{Issues found}\label{issues-found}
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Severtity & Number of issues found \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+High & 4 \\
+Medium & 2 \\
+Low & 2 \\
+Info & 9 \\
+Total & 17 \\
+\end{longtable}
+
+\section{Findings}\label{findings}
+
+\subsection{High}\label{high}
+
+\subsubsection{\texorpdfstring{{[}H-1{]} \texttt{TSwapPool::deposit} is
+missing deadline check causing transactions to complete even after the
+deadline}{{[}H-1{]} TSwapPool::deposit is missing deadline check causing transactions to complete even after the deadline}}\label{h-1-tswappooldeposit-is-missing-deadline-check-causing-transactions-to-complete-even-after-the-deadline}
+
+\textbf{Description:} The \texttt{deposit} function accepts a deadline
+parameter, which according to the documentation is ``The deadline for
+the transaction to be completed by''. However, this parameter is never
+used. As a consequence, operationrs that add liquidity to the pool might
+be executed at unexpected times, in market conditions where the deposit
+rate is unfavorable.
+
+\textbf{Impact:} Transactions could be sent when market conditions are
+unfavorable to deposit, even when adding a deadline parameter.
+
+\textbf{Proof of Concept:} The \texttt{deadline} parameter is unused.
+
+\textbf{Recommended Mitigation:} Consider making the following change to
+the function.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{function deposit(}
+\NormalTok{        uint256 wethToDeposit,}
+\NormalTok{        uint256 minimumLiquidityTokensToMint, // LP tokens {-}\textgreater{} if empty, we can pick 100\% (100\% == 17 tokens)}
+\NormalTok{        uint256 maximumPoolTokensToDeposit,}
+\NormalTok{        uint64 deadline}
+\NormalTok{    )}
+\NormalTok{        external}
+\VariableTok{+       revertIfDeadlinePassed(deadline)}
+\NormalTok{        revertIfZero(wethToDeposit)}
+\NormalTok{        returns (uint256 liquidityTokensToMint)}
+\NormalTok{    \{}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}H-2{]} Incorrect fee calculation in
+\texttt{TSwapPool::getInputAmountBasedOnOutput} causes protocll to take
+too many tokens from users, resulting in lost
+fees}{{[}H-2{]} Incorrect fee calculation in TSwapPool::getInputAmountBasedOnOutput causes protocll to take too many tokens from users, resulting in lost fees}}\label{h-2-incorrect-fee-calculation-in-tswappoolgetinputamountbasedonoutput-causes-protocll-to-take-too-many-tokens-from-users-resulting-in-lost-fees}
+
+\textbf{Description:} The \texttt{getInputAmountBasedOnOutput} function
+is intended to calculate the amount of tokens a user should deposit
+given an amount of tokens of output tokens. However, the function
+currently miscalculates the resulting amount. When calculating the fee,
+it scales the amount by 10\_000 instead of 1\_000.
+
+\textbf{Impact:} Protocol takes more fees than expected from users.
+
+\textbf{Recommended Mitigation:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    function getInputAmountBasedOnOutput(}
+\NormalTok{        uint256 outputAmount,}
+\NormalTok{        uint256 inputReserves,}
+\NormalTok{        uint256 outputReserves}
+\NormalTok{    )}
+\NormalTok{        public}
+\NormalTok{        pure}
+\NormalTok{        revertIfZero(outputAmount)}
+\NormalTok{        revertIfZero(outputReserves)}
+\NormalTok{        returns (uint256 inputAmount)}
+\NormalTok{    \{}
+\StringTok{{-}        return ((inputReserves * outputAmount) * 10\_000) / ((outputReserves {-} outputAmount) * 997);}
+\VariableTok{+        return ((inputReserves * outputAmount) * 1\_000) / ((outputReserves {-} outputAmount) * 997);}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}H-3{]} Lack of slippage protection in
+\texttt{TSwapPool::swapExactOutput} causes users to potentially receive
+way fewer
+tokens}{{[}H-3{]} Lack of slippage protection in TSwapPool::swapExactOutput causes users to potentially receive way fewer tokens}}\label{h-3-lack-of-slippage-protection-in-tswappoolswapexactoutput-causes-users-to-potentially-receive-way-fewer-tokens}
+
+\textbf{Description:} The \texttt{swapExactOutput} function does not
+include any sort of slippage protection. This function is similar to
+what is done in \texttt{TSwapPool::swapExactInput}, where the function
+specifies a \texttt{minOutputAmount}, the \texttt{swapExactOutput}
+function should specify a \texttt{maxInputAmount}.
+
+\textbf{Impact:} If market conditions change before the transaciton
+processes, the user could get a much worse swap.
+
+\textbf{Proof of Concept:} 1. The price of 1 WETH right now is 1,000
+USDC 2. User inputs a \texttt{swapExactOutput} looking for 1 WETH 1.
+inputToken = USDC 2. outputToken = WETH 3. outputAmount = 1 4. deadline
+= whatever 3. The function does not offer a maxInput amount 4. As the
+transaction is pending in the mempool, the market changes! And the price
+moves HUGE -\textgreater{} 1 WETH is now 10,000 USDC. 10x more than the
+user expected 5. The transaction completes, but the user sent the
+protocol 10,000 USDC instead of the expected 1,000 USDC
+
+\textbf{Recommended Mitigation:} We should include a
+\texttt{maxInputAmount} so the user only has to spend up to a specific
+amount, and can predict how much they will spend on the protocol.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    function swapExactOutput(}
+\NormalTok{        IERC20 inputToken, }
+\VariableTok{+       uint256 maxInputAmount,}
+\NormalTok{.}
+\NormalTok{.}
+\NormalTok{.}
+\NormalTok{        inputAmount = getInputAmountBasedOnOutput(outputAmount, inputReserves, outputReserves);}
+\VariableTok{+       if(inputAmount \textgreater{} maxInputAmount)\{}
+\VariableTok{+           revert();}
+\VariableTok{+       \}        }
+\NormalTok{        \_swap(inputToken, inputAmount, outputToken, outputAmount);}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}H-4{]}
+\texttt{TSwapPool::sellPoolTokens} mismatches input and output tokens
+causing users to receive the incorrect amount of
+tokens}{{[}H-4{]} TSwapPool::sellPoolTokens mismatches input and output tokens causing users to receive the incorrect amount of tokens}}\label{h-4-tswappoolsellpooltokens-mismatches-input-and-output-tokens-causing-users-to-receive-the-incorrect-amount-of-tokens}
+
+\textbf{Description:} The \texttt{sellPoolTokens} function is intended
+to allow users to easily sell pool tokens and receive WETH in exchange.
+Users indicate how many pool tokens they're willing to sell in the
+\texttt{poolTokenAmount} parameter. However, the function currently
+miscalculaes the swapped amount.
+
+This is due to the fact that the \texttt{swapExactOutput} function is
+called, whereas the \texttt{swapExactInput} function is the one that
+should be called. Because users specify the exact amount of input
+tokens, not output.
+
+\textbf{Impact:} Users will swap the wrong amount of tokens, which is a
+severe disruption of protcol functionality.
+
+\textbf{Proof of Concept:}
+
+\textbf{Recommended Mitigation:}
+
+Consider changing the implementation to use \texttt{swapExactInput}
+instead of \texttt{swapExactOutput}. Note that this would also require
+changing the \texttt{sellPoolTokens} function to accept a new parameter
+(ie \texttt{minWethToReceive} to be passed to \texttt{swapExactInput})
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    function sellPoolTokens(}
+\NormalTok{        uint256 poolTokenAmount,}
+\VariableTok{+       uint256 minWethToReceive,    }
+\NormalTok{        ) external returns (uint256 wethAmount) \{}
+\StringTok{{-}        return swapExactOutput(i\_poolToken, i\_wethToken, poolTokenAmount, uint64(block.timestamp));}
+\VariableTok{+        return swapExactInput(i\_poolToken, poolTokenAmount, i\_wethToken, minWethToReceive, uint64(block.timestamp));}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+Additionally, it might be wise to add a deadline to the function, as
+there is currently no deadline. (MEV later)
+
+\subsubsection{\texorpdfstring{{[}H-5{]} In \texttt{TSwapPool::\_swap}
+the extra tokens given to users after every \texttt{swapCount} breaks
+the protocol invariant of
+\texttt{x\ *\ y\ =\ k}}{{[}H-5{]} In TSwapPool::\_swap the extra tokens given to users after every swapCount breaks the protocol invariant of x * y = k}}\label{h-5-in-tswappool_swap-the-extra-tokens-given-to-users-after-every-swapcount-breaks-the-protocol-invariant-of-x-y-k}
+
+\textbf{Description:} The protocol follows a strict invariant of
+\texttt{x\ *\ y\ =\ k}. Where: - \texttt{x}: The balance of the pool
+token - \texttt{y}: The balance of WETH - \texttt{k}: The constant
+product of the two balances
+
+This means, that whenever the balances change in the protocol, the ratio
+between the two amounts should remain constant, hence the \texttt{k}.
+However, this is broken due to the extra incentive in the
+\texttt{\_swap} function. Meaning that over time the protocol funds will
+be drained.
+
+The follow block of code is responsible for the issue.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{        swap\_count}\OperatorTok{++;}
+        \ControlFlowTok{if}\NormalTok{ (swap\_count }\OperatorTok{\textgreater{}=}\NormalTok{ SWAP\_COUNT\_MAX) \{}
+\NormalTok{            swap\_count }\OperatorTok{=} \DecValTok{0}\OperatorTok{;}
+\NormalTok{            outputToken}\OperatorTok{.}\FunctionTok{safeTransfer}\NormalTok{(msg}\OperatorTok{.}\AttributeTok{sender}\OperatorTok{,} \DecValTok{1\_000\_000\_000\_000\_000\_000}\NormalTok{)}\OperatorTok{;}
+\NormalTok{        \}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Impact:} A user could maliciously drain the protocol of funds by
+doing a lot of swaps and collecting the extra incentive given out by the
+protocol.
+
+Most simply put, the protocol's core invariant is broken.
+
+\textbf{Proof of Concept:} 1. A user swaps 10 times, and collects the
+extra incentive of \texttt{1\_000\_000\_000\_000\_000\_000} tokens 2.
+That user continues to swap untill all the protocol funds are drained
+
+Proof Of Code
+
+Place the following into \texttt{TSwapPool.t.sol}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+    \KeywordTok{function} \FunctionTok{testInvariantBroken}\NormalTok{() }\KeywordTok{public}\NormalTok{ \{}
+\NormalTok{        vm}\OperatorTok{.}\FunctionTok{startPrank}\NormalTok{(liquidityProvider)}\OperatorTok{;}
+\NormalTok{        weth}\OperatorTok{.}\FunctionTok{approve}\NormalTok{(}\FunctionTok{address}\NormalTok{(pool)}\OperatorTok{,} \FloatTok{100e18}\NormalTok{)}\OperatorTok{;}
+\NormalTok{        poolToken}\OperatorTok{.}\FunctionTok{approve}\NormalTok{(}\FunctionTok{address}\NormalTok{(pool)}\OperatorTok{,} \FloatTok{100e18}\NormalTok{)}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{deposit}\NormalTok{(}\FloatTok{100e18}\OperatorTok{,} \FloatTok{100e18}\OperatorTok{,} \FloatTok{100e18}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        vm}\OperatorTok{.}\FunctionTok{stopPrank}\NormalTok{()}\OperatorTok{;}
+
+\NormalTok{        uint256 outputWeth }\OperatorTok{=} \FloatTok{1e17}\OperatorTok{;}
+
+\NormalTok{        vm}\OperatorTok{.}\FunctionTok{startPrank}\NormalTok{(user)}\OperatorTok{;}
+\NormalTok{        poolToken}\OperatorTok{.}\FunctionTok{approve}\NormalTok{(}\FunctionTok{address}\NormalTok{(pool)}\OperatorTok{,} \FunctionTok{type}\NormalTok{(uint256)}\OperatorTok{.}\AttributeTok{max}\NormalTok{)}\OperatorTok{;}
+\NormalTok{        poolToken}\OperatorTok{.}\FunctionTok{mint}\NormalTok{(user}\OperatorTok{,} \FloatTok{100e18}\NormalTok{)}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+
+\NormalTok{        int256 startingY }\OperatorTok{=} \FunctionTok{int256}\NormalTok{(weth}\OperatorTok{.}\FunctionTok{balanceOf}\NormalTok{(}\FunctionTok{address}\NormalTok{(pool)))}\OperatorTok{;}
+\NormalTok{        int256 expectedDeltaY }\OperatorTok{=} \FunctionTok{int256}\NormalTok{(}\OperatorTok{{-}}\DecValTok{1}\NormalTok{) }\OperatorTok{*} \FunctionTok{int256}\NormalTok{(outputWeth)}\OperatorTok{;}
+
+\NormalTok{        pool}\OperatorTok{.}\FunctionTok{swapExactOutput}\NormalTok{(poolToken}\OperatorTok{,}\NormalTok{ weth}\OperatorTok{,}\NormalTok{ outputWeth}\OperatorTok{,} \FunctionTok{uint64}\NormalTok{(block}\OperatorTok{.}\AttributeTok{timestamp}\NormalTok{))}\OperatorTok{;}
+\NormalTok{        vm}\OperatorTok{.}\FunctionTok{stopPrank}\NormalTok{()}\OperatorTok{;}
+
+\NormalTok{        uint256 endingY }\OperatorTok{=}\NormalTok{ weth}\OperatorTok{.}\FunctionTok{balanceOf}\NormalTok{(}\FunctionTok{address}\NormalTok{(pool))}\OperatorTok{;}
+\NormalTok{        int256 actualDeltaY }\OperatorTok{=} \FunctionTok{int256}\NormalTok{(endingY) }\OperatorTok{{-}} \FunctionTok{int256}\NormalTok{(startingY)}\OperatorTok{;}
+        \FunctionTok{assertEq}\NormalTok{(actualDeltaY}\OperatorTok{,}\NormalTok{ expectedDeltaY)}\OperatorTok{;}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Recommended Mitigation:} Remove the extra incentive mechanism.
+If you want to keep this in, we should account for the change in the x *
+y = k protocol invariant. Or, we should set aside tokens in the same way
+we do with fees.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{{-}        swap\_count++;}
+\StringTok{{-}        // Fee{-}on{-}transfer}
+\StringTok{{-}        if (swap\_count \textgreater{}= SWAP\_COUNT\_MAX) \{}
+\StringTok{{-}            swap\_count = 0;}
+\StringTok{{-}            outputToken.safeTransfer(msg.sender, 1\_000\_000\_000\_000\_000\_000);}
+\StringTok{{-}        \}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Low}\label{low}
+
+\subsubsection{\texorpdfstring{{[}L-1{]}
+\texttt{TSwapPool::LiquidityAdded} event has parameters out of
+order}{{[}L-1{]} TSwapPool::LiquidityAdded event has parameters out of order}}\label{l-1-tswappoolliquidityadded-event-has-parameters-out-of-order}
+
+\textbf{Description:} When the \texttt{LiquidityAdded} event is emitted
+in the \texttt{TSwapPool::\_addLiquidityMintAndTransfer} function, it
+logs values in an incorrect order. The \texttt{poolTokensToDeposit}
+value should go in the third parameter position, whereas the
+\texttt{wethToDeposit} value should go second.
+
+\textbf{Impact:} Event emission is incorrect, leading to off-chain
+functions potentially malfunctioning.
+
+\textbf{Recommended Mitigation:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{{-} emit LiquidityAdded(msg.sender, poolTokensToDeposit, wethToDeposit);}
+\VariableTok{+ emit LiquidityAdded(msg.sender, wethToDeposit, poolTokensToDeposit);}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}L-2{]} Default value returned by
+\texttt{TSwapPool::swapExactInput} results in incorrect return value
+given}{{[}L-2{]} Default value returned by TSwapPool::swapExactInput results in incorrect return value given}}\label{l-2-default-value-returned-by-tswappoolswapexactinput-results-in-incorrect-return-value-given}
+
+\textbf{Description:} The \texttt{swapExactInput} function is expected
+to return the actual amount of tokens bought by the caller. However,
+while it declares the named return value \texttt{ouput} it is never
+assigned a value, nor uses an explict return statement.
+
+\textbf{Impact:} The return value will always be 0, giving incorrect
+information to the caller.
+
+\textbf{Recommended Mitigation:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    \{}
+\NormalTok{        uint256 inputReserves = inputToken.balanceOf(address(this));}
+\NormalTok{        uint256 outputReserves = outputToken.balanceOf(address(this));}
+
+\StringTok{{-}        uint256 outputAmount = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);}
+\VariableTok{+        output = getOutputAmountBasedOnInput(inputAmount, inputReserves, outputReserves);}
+
+\StringTok{{-}        if (output \textless{} minOutputAmount) \{}
+\StringTok{{-}            revert TSwapPool\_\_OutputTooLow(outputAmount, minOutputAmount);}
+\VariableTok{+        if (output \textless{} minOutputAmount) \{}
+\VariableTok{+            revert TSwapPool\_\_OutputTooLow(outputAmount, minOutputAmount);}
+\NormalTok{        \}}
+
+\StringTok{{-}        \_swap(inputToken, inputAmount, outputToken, outputAmount);}
+\VariableTok{+        \_swap(inputToken, inputAmount, outputToken, output);}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Informationals}\label{informationals}
+
+\subsubsection{\texorpdfstring{{[}I-1{]}
+\texttt{PoolFactory::PoolFactory\_\_PoolDoesNotExist} is not used and
+should be
+removed}{{[}I-1{]} PoolFactory::PoolFactory\_\_PoolDoesNotExist is not used and should be removed}}\label{i-1-poolfactorypoolfactory__pooldoesnotexist-is-not-used-and-should-be-removed}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{{-} error PoolFactory\_\_PoolDoesNotExist(address tokenAddress);}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{{[}I-2{]} Lacking zero address
+checks}\label{i-2-lacking-zero-address-checks}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    constructor(address wethToken) \{}
+\VariableTok{+       if(wethToken == address(0)) \{}
+\VariableTok{+            revert();}
+\VariableTok{+        \}}
+\NormalTok{        i\_wethToken = wethToken;}
+\NormalTok{    \}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}I-3{]}
+\texttt{PoolFacotry::createPool} should use \texttt{.symbol()} instead
+of
+\texttt{.name()}}{{[}I-3{]} PoolFacotry::createPool should use .symbol() instead of .name()}}\label{i-3-poolfacotrycreatepool-should-use-.symbol-instead-of-.name}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\StringTok{{-}        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).name());}
+\VariableTok{+        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).symbol());}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{{[}I-4{]} Event is missing
+\texttt{indexed}
+fields}{{[}I-4{]} Event is missing indexed fields}}\label{i-4-event-is-missing-indexed-fields}
+
+Index event fields make the field more quickly accessible to off-chain
+tools that parse events. However, note that each index field costs extra
+gas during emission, so it's not necessarily best to index the maximum
+allowed per event (three fields). Each event should use three indexed
+fields if there are three or more fields, and gas usage is not
+particularly of concern for the events in question. If there are fewer
+than three fields, all of the fields should be indexed.
+
+\begin{itemize}
+\tightlist
+\item
+  Found in src/TSwapPool.sol: Line: 44
+\item
+  Found in src/PoolFactory.sol: Line: 37
+\item
+  Found in src/TSwapPool.sol: Line: 46
+\item
+  Found in src/TSwapPool.sol: Line: 43
+\end{itemize}
